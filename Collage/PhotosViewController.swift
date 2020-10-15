@@ -13,7 +13,7 @@ class PhotosViewController: UICollectionViewController {
     // MARK: - Private properties
     private let selectedPhotosSubject = PassthroughSubject<UIImage, Never>()
     
-    
+    private var subscriptions = Set<AnyCancellable>()
     private lazy var photos = PhotosViewController.loadPhotos()
     private lazy var imageManager = PHCachingImageManager()
     
@@ -29,7 +29,7 @@ class PhotosViewController: UICollectionViewController {
         super.viewDidLoad()
         
         // Check for Photos access authorization and reload the list if authorized.
-        PHPhotoLibrary.fetchAuthorizationStatus { [weak self] status in
+        /*PHPhotoLibrary.fetchAuthorizationStatus { [weak self] status in
             if status {
                 self?.photos = PhotosViewController.loadPhotos()
                 
@@ -37,7 +37,29 @@ class PhotosViewController: UICollectionViewController {
                     self?.collectionView.reloadData()
                 }
             }
-        }
+        }*/
+        
+        PHPhotoLibrary.isAuthorized
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isAuthorized in
+                if isAuthorized {
+                    self?.photos = PhotosViewController.loadPhotos()
+                    self?.collectionView.reloadData()
+                } else {
+                    self?.showErrorMessage()
+                }
+            }
+            .store(in: &subscriptions)
+        
+    }
+    
+    func showErrorMessage() {
+        alert(title: "No access to Camera Roll", text: "You can grant access to Collage from the Settings app")
+            .sink(receiveCompletion: { [weak self] completion in
+                self?.dismiss(animated: true, completion: nil)
+                self?.navigationController?.popViewController(animated: true)
+            }, receiveValue: { _ in })
+            .store(in: &subscriptions)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
