@@ -32,7 +32,7 @@ import Combine
 extension UIViewController {
     
     func alert(title: String, text: String?) -> AnyPublisher<Void, Never> {
-        
+        print("ALERT1")
         let alertVC = UIAlertController(title: title, message: text, preferredStyle: .alert)
         
         return Future { resolve in

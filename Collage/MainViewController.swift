@@ -84,6 +84,7 @@ class MainViewController: UIViewController {
         let photos = storyboard!.instantiateViewController( withIdentifier: "PhotosViewController") as! PhotosViewController
         
 //        photos.$selectedPhotosCount
+//            .print("$selectedPhotosCount ")
 //            .filter { $0 > 0 }
 //            .map { "Selected \($0) photos" }
 //            .assign(to: \.title, on: self)
@@ -92,9 +93,28 @@ class MainViewController: UIViewController {
         
         let newPhotos = photos.selectedPhotos
             .prefix(while: { [unowned self] _ in
-                        return self.images.value.count < 6
+                return self.images.value.count < 6
             })
+            .filter { newImage in
+                return newImage.size.width > newImage.size.height
+            }//filter all images with portrait orientation.
             .share()
+        
+        
+        newPhotos
+            .ignoreOutput()
+            .filter { [unowned self] _ in self.images.value.count == 6 }
+            .print("HOLA")
+            .flatMap { [unowned self] _ in
+                self.alert(title: "Limit reached", text: "To add more than 6 photos please purchase Collage Pro")
+            }
+            .print("HOLA1")
+            .sink(receiveCompletion: { [unowned self] _ in
+                self.navigationController?.popViewController(animated: true)
+            }, receiveValue: { _ in          })
+            .store(in: &subscriptions)
+        
+        
         
         //let newPhotos = photos.selectedPhotos
         //let newPhotos = photos.selectedPhotos.share()
@@ -111,6 +131,7 @@ class MainViewController: UIViewController {
             .ignoreOutput()
             .delay(for: 2.0, scheduler: DispatchQueue.main)
             .sink(receiveCompletion: { [unowned self] _ in
+                print("receiveCompletion updateUI")
                 self.updateUI(photos: self.images.value)
             }, receiveValue: { _ in })
             .store(in: &subscriptions)
@@ -126,7 +147,10 @@ class MainViewController: UIViewController {
 //        present(alert, animated: true, completion: nil)
         
         alert(title: title, text: description)
-            .sink(receiveValue: { _ in print("ReceiveValue") })
+            .sink(receiveValue: { _ in
+                    //print("ReceiveValue")
+                
+            })
             .store(in: &subscriptions)
         
     }

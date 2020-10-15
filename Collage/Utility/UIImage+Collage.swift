@@ -4,7 +4,7 @@ import UIKit
 extension UIImage {
 
   static func collage(images: [UIImage], size: CGSize) -> UIImage {
-    print("Collage received \(images.count)")
+    //print("Collage received \(images.count)")
     let rows = images.count < 3 ? 1 : 2
     let columns = Int(round(Double(images.count) / Double(rows)))
     let tileSize = CGSize(width: round(size.width / CGFloat(columns)),
